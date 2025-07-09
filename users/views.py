@@ -7,14 +7,20 @@ def participant_login(request):
     if request.method == 'POST':
         form = ParticipantLoginForm(request.POST)
         if form.is_valid():
-            full_name = form.cleaned_data['full_name']
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
             email = form.cleaned_data['email']
+            age = form.cleaned_data['age']
 
-            participant, created = Participant.objects.get_or_create(email=email, defaults={'full_name': full_name})
+            participant, created = Participant.objects.get_or_create(
+                email=email,
+                defaults={'first_name': first_name, 'last_name': last_name}
+            )
 
-            # Если участник есть, но имя не совпадает, обновим имя (опционально)
-            if not created and participant.full_name != full_name:
-                participant.full_name = full_name
+            # При необходимости обновить имя
+            if not created and (participant.first_name != first_name or participant.last_name != last_name):
+                participant.first_name = first_name
+                participant.last_name = last_name
                 participant.save()
 
             request.session['participant_id'] = participant.id
@@ -23,6 +29,7 @@ def participant_login(request):
         form = ParticipantLoginForm()
 
     return render(request, 'users/login.html', {'form': form})
+
 
 def participant_profile(request):
     participant_id = request.session.get('participant_id')
