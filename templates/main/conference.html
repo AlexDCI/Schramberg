@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Conference{% endblock %}
+
+{% block content %}
+<h1>Conference Info</h1>
+<hr>
+
+  <div>
+    <a href="{% url 'participant_login' %}">Zur Registrierung</a>
+    
+    {% if user.is_authenticated and user.is_staff %}
+      | <a href="{% url 'admin_dashboard' %}">Admin-Dashboard</a>
+    {% endif %}
+  </div>
+  <hr>
+<p>Pfingstkonferenz 7.–13. Juni 2026 in Schramberg-Sulgen
+Thema: Gemeinschaft in Heiligkeit und Erwartung der Ankunft unseres Herrn (1. Thessalonicher).
+
+Ort: Familienbildungs- und Feriendorf Eckenhof, Dr.-Helmut-Junghans-Str. 50, 78713 Schramberg-Sulgen
+Anreise: 7. Juni ab 14 Uhr
+Unterbringung: Häuser mit 6 Betten, Verpflegung teils gemeinsam, Bettwäsche wird gestellt.
+
+Kosten pro Nacht:
+
+Erwachsene 37 € (Einzelzimmer 45 €)
+
+Kinder ab 3 Jahre ermäßigt, unter 2 Jahre frei
+
+Versammlungszeiten:
+
+Morgens 10:00 Uhr
+
+Abends 19:30 Uhr
+
+Kinderdienst und verschiedene Freizeitaktivitäten werden angeboten.
+
+Kontakt bei Anreiseproblemen:
+Michael Fürtsch 0176 2153 4928
+Gerhard Hirstein 0160 9450 2037
+
+</p>
+<p>
+    Programm der Pfingstkonferenz 7.–13. Juni 2025:
+
+7. Juni (Sa): Anreise ab 14 Uhr, Abendversammlung 19:30
+
+8. Juni (So): Morgens Versammlung, nachmittags Freizeit, Abendversammlung
+
+9. Juni (Mo): Morgens Versammlung, Aktivitäten (z.B. Bogenschießen), Abendversammlung
+
+10. Juni (Di): Morgens Versammlung, Evangelium in Villingen, Gebetsversammlung abends
+
+11. Juni (Mi): Morgens Versammlung, Freizeit, Abendversammlung
+
+12. Juni (Do): Morgens Versammlung, Taufe, Grillen, Zeugnisse, Singen am Abend
+
+13. Juni (Fr): Morgens Versammlung, Abschluss
+
+
+</p>
+
+
+{% endblock %}

@@ -1,0 +1,7 @@
+<h2>Registrierung / Anmeldung des Teilnehmers</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Weiter</button>
+</form>

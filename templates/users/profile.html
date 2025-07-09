@@ -1,0 +1,11 @@
+<h2>Teilnehmerprofil</h2>
+
+{% if success %}
+  <p style="color: green;">Daten wurden erfolgreich gespeichert!</p>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Speichern</button>
+</form>

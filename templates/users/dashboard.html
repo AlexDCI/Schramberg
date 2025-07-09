@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Admin-Dashboard{% endblock %}
+
+{% block content %}
+  <h2>Admin-Bereich: Teilnehmer</h2>
+
+  <p><strong>Gesamtanzahl der Personen:</strong> {{ total_people }}</p>
+
+  <table border="1" cellpadding="5">
+    <tr>
+      <th>Name</th>
+      <th>E-Mail</th>
+      <th>Anzahl der Familienmitglieder</th>
+      <th>Anreisedatum</th>
+      <th>Abreisedatum</th>
+    </tr>
+    {% for p in participants %}
+    <tr>
+      <td>{{ p.full_name }}</td>
+      <td>{{ p.email }}</td>
+      <td>{{ p.family_members }}</td>
+      <td>{{ p.arrival_date }}</td>
+      <td>{{ p.departure_date }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endblock %}
