@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .models import Participant, Child
 from django.forms import inlineformset_factory
 from django.db.models import Sum
+from collections import Counter
 
 def staff_check(user):
     """Return True if the user is marked as staff.
@@ -157,71 +158,193 @@ def participant_profile(request):
         'formset': formset,
     })
 
-@login_required
-@user_passes_test(staff_check)
-def admin_dashboard(request):
-    participants = Participant.objects.all()
 
-    # Общая статистика
-    total_participants = participants.count()
-    total_people = participants.aggregate(total=Sum('family_members'))['total'] or 0
-    total_children = Child.objects.count()
-    total_emails = participants.exclude(email='').count()
 
-    # Считаем ночи для каждого участника
-    def nights(p):
-        if p.arrival_date and p.departure_date:
-            return (p.departure_date - p.arrival_date).days
-        return 0
 
-    # Kurtaxe: разбивка по возрасту
-    adults = []
-    kids_10_17 = []
-    kids_under_10 = []
+def nights(participant):
+    """Calculate number of nights for a participant.
+    Считает количество ночей для участника."""
+    if participant.arrival_date and participant.departure_date:
+        return (participant.departure_date - participant.arrival_date).days
+    return 0
 
+def get_kurtaxe_groups(participants):
+    """Build Kurtaxe groups by age.
+    Формирует группы для курортного сбора по возрасту."""
+    adults, kids_10_17, kids_under_10 = [], [], []
     for p in participants:
-        # Взрослый
         if p.age and p.age >= 18:
             adults.append({'nights': nights(p)})
-        # Дети у участника
         for c in p.children.all():
             if c.age >= 10 and c.age <= 17:
                 kids_10_17.append({'nights': nights(p)})
             elif c.age < 10:
                 kids_under_10.append({'nights': nights(p)})
-
-    kurtaxe_groups = [
+    groups = [
         {'name': 'Erwachsene (18+)/ Взрослые (18+)', 'people': len(adults), 'nights': sum(a['nights'] for a in adults), 'kurtaxe_sum': round(len(adults) * 1.8 * sum(a['nights'] for a in adults), 2), 'discount': ''},
         {'name': 'Kinder 10-17/ Дети 10-17', 'people': len(kids_10_17), 'nights': sum(a['nights'] for a in kids_10_17), 'kurtaxe_sum': round(len(kids_10_17) * 1.0 * sum(a['nights'] for a in kids_10_17), 2), 'discount': ''},
         {'name': 'Kinder unter 10/ Дети до 10', 'people': len(kids_under_10), 'nights': sum(a['nights'] for a in kids_under_10), 'kurtaxe_sum': 0, 'discount': ''},
     ]
-    kurtaxe_total = sum(g['kurtaxe_sum'] for g in kurtaxe_groups)
+    total = sum(g['kurtaxe_sum'] for g in groups)
+    return groups, total
 
-    # Постельное бельё (Bettwäsche) — пример: считаем по количеству family_members
-    bed_list = []
-    for p in participants:
-        bed_list.append({'group': p.full_name(), 'count': p.family_members})
+def get_bed_list(participants):
+    """Count bed linen sets for each group.
+    Считает комплекты постельного белья для каждой группы."""
+    bed_list = [{'group': p.full_name(), 'count': p.family_members} for p in participants]
     bed_total = sum(b['count'] for b in bed_list)
+    return bed_list, bed_total
 
-    # Email-рассылка
-    email_list = []
-    for p in participants:
-        email_list.append({'group': p.full_name(), 'address': p.email})
+def get_email_list(participants):
+    """Collect emails for mailing list.
+    Собирает email-адреса для рассылки."""
+    return [{'group': p.full_name(), 'address': p.email} for p in participants]
 
-    # Взносы участников (пример, если есть поля для оплаты)
-    payment_list = []
+def get_payment_list(participants):
+    """Build list of payments per participant.
+    Формирует список взносов по каждому участнику."""
+    return [{
+        'name': p.full_name(),
+        'email': p.email,
+        'people': p.family_members,
+        'nights': nights(p),
+        'full_price': '',      # Fill if you have this field
+        'partial_price': '',   # Fill if you have this field
+        'total': '',           # Fill if you have this field
+        'payment_method': '',  # Fill if you have this field
+        'note': p.comment,
+    } for p in participants]
+
+# @login_required
+# @user_passes_test(staff_check)
+# def admin_dashboard(request):
+#     """
+#     Main admin dashboard view.  
+#     Главная функция админ-дешборда.
+#     """
+#     participants = Participant.objects.all()
+
+#     # General statistics / Общая статистика
+#     total_participants = participants.count()
+#     total_people = participants.aggregate(total=Sum('family_members'))['total'] or 0
+#     total_children = Child.objects.count()
+#     total_emails = participants.exclude(email='').count()
+
+#     # Kurtaxe groups / Курортный сбор
+#     kurtaxe_groups, kurtaxe_total = get_kurtaxe_groups(participants)
+
+#     # Bed linen / Постельное бельё
+#     bed_list, bed_total = get_bed_list(participants)
+
+#     # Email list / Email-рассылка
+#     email_list = get_email_list(participants)
+
+#     # Payments / Взносы участников
+#     payment_list = get_payment_list(participants)
+
+#     context = {
+#         'stats': {
+#             'total_participants': total_participants,
+#             'total_people': total_people,
+#             'total_children': total_children,
+#             'total_nights': sum(nights(p) for p in participants),
+#             'total_emails': total_emails,
+#         },
+#         'kurtaxe_groups': kurtaxe_groups,
+#         'kurtaxe_total': kurtaxe_total,
+#         'bed_list': bed_list,
+#         'bed_total': bed_total,
+#         'email_list': email_list,
+#         'payment_list': payment_list,
+#         'total_emails': total_emails,
+#     }
+#     return render(request, 'users/dashboard.html', context)
+
+def get_instrument_stats(participants):
+    """
+    Count musical instruments among participants.
+    Считает музыкальные инструменты среди участников.
+    """
+    instrument_keywords = ['gitarre', 'klavier', 'schlagzeug', 'bass', 'gesang']
+    instrument_stats = Counter()
     for p in participants:
-        payment_list.append({
-            'name': p.full_name(),
-            'email': p.email,
-            'people': p.family_members,
-            'nights': nights(p),
-            'full_price': '',  # Заполните, если есть поле
-            'partial_price': '',  # Заполните, если есть поле
-            'total': '',  # Заполните, если есть поле
-            'payment_method': '',  # Заполните, если есть поле
-            'note': p.comment,
-        })
+        services = [s.strip().lower() for s in (p.services or '').split(',')]
+        for s in services:
+            if s in instrument_keywords:
+                instrument_stats[s] += 1
+    print('DEBUG instrument_stats:', instrument_stats, type(instrument_stats))  # <-- ОТЛАДКА
+    return instrument_stats
+
+
+def get_service_stats(participants):
+    """
+    Count services (volunteer roles) among participants.
+    Считает служения среди участников.
+    """
+    instrument_keywords = ['gitarre', 'klavier', 'schlagzeug', 'bass', 'gesang']
+    service_stats = Counter()
+    for p in participants:
+        services = [s.strip().lower() for s in (p.services or '').split(',')]
+        for s in services:
+            if s and s not in instrument_keywords:
+                service_stats[s] += 1
+    return service_stats
+
+def get_food_stats(participants):
+    """
+    Count food preferences among participants.
+    Считает типы питания среди участников.
+    """
+    food_stats = Counter()
+    for p in participants:
+        food_stats[(p.food_preference or 'unbekannt')] += 1
+    return food_stats
+
+def get_special_diets(participants):
+    """
+    List all individual dietary restrictions.
+    Список индивидуальных ограничений по питанию.
+    """
+    special_diets = []
+    for p in participants:
+        if p.has_dietary_restrictions and p.dietary_details:
+            special_diets.append({'name': p.full_name(), 'details': p.dietary_details})
+    return special_diets
+
+def get_important_notes(participants):
+    """
+    Collect all comments/important notes from participants.
+    Собирает все комментарии/особые случаи от участников.
+    """
+    notes = []
+    for p in participants:
+        if p.comment:
+            notes.append({'name': p.full_name(), 'note': p.comment})
+    return notes
+
+@login_required
+@user_passes_test(staff_check)
+def admin_dashboard(request):
+    participants = Participant.objects.all()
+
+    # Общая статистика / General statistics
+    total_participants = participants.count()
+    total_people = participants.aggregate(total=Sum('family_members'))['total'] or 0
+    total_children = Child.objects.count()
+    total_emails = participants.exclude(email='').count()
+
+    # Улучшенные блоки
+    instrument_stats = get_instrument_stats(participants)
+    service_stats = get_service_stats(participants)
+    food_stats = get_food_stats(participants)
+    special_diets = get_special_diets(participants)
+    important_notes = get_important_notes(participants)
+
+    # Остальные блоки
+    kurtaxe_groups, kurtaxe_total = get_kurtaxe_groups(participants)
+    bed_list, bed_total = get_bed_list(participants)
+    email_list = get_email_list(participants)
+    payment_list = get_payment_list(participants)
 
     context = {
         'stats': {
@@ -231,6 +354,11 @@ def admin_dashboard(request):
             'total_nights': sum(nights(p) for p in participants),
             'total_emails': total_emails,
         },
+        'instrument_stats': dict(instrument_stats),
+        'service_stats': dict(service_stats),
+        'food_stats': dict(food_stats),
+        'special_diets': special_diets,
+        'important_notes': important_notes,
         'kurtaxe_groups': kurtaxe_groups,
         'kurtaxe_total': kurtaxe_total,
         'bed_list': bed_list,
