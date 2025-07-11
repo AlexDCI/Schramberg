@@ -1,15 +1,6 @@
 from django.db import models
 
 
-# class Participant(models.Model):
-#     full_name = models.CharField(max_length=100)
-#     email = models.EmailField(unique=True)  # email уникален
-#     family_members = models.PositiveIntegerField(default=1)
-#     arrival_date = models.DateField(null=True, blank=True)
-#     departure_date = models.DateField(null=True, blank=True)
-
-#     def __str__(self):
-#         return f'{self.full_name} ({self.email})'
 class Participant(models.Model):
     # Основные данные
     first_name = models.CharField(max_length=100)
@@ -42,7 +33,7 @@ class Participant(models.Model):
 
     # Дети
     has_children = models.BooleanField(default=False)
-    children_ages = models.CharField(max_length=100, blank=True)
+    number_of_children = models.PositiveIntegerField(default=0)
 
     # Служения (могут быть множественные)
     services = models.CharField(max_length=200, blank=True)  # Можно хранить список как строку
@@ -66,6 +57,15 @@ class Participant(models.Model):
 
     def __str__(self):
         return f'{self.first_name} {self.last_name} ({self.email})'
-    
+
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+class Child(models.Model):
+    participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='children')
+    name = models.CharField(max_length=100)
+    age = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f'{self.name} ({self.age})'
+

@@ -1,5 +1,6 @@
 from django import forms
-from .models import Participant
+from .models import Participant, Child
+from django.forms import inlineformset_factory
 
 class ParticipantLoginForm(forms.Form):
     first_name = forms.CharField(label='Vorname')
@@ -8,14 +9,25 @@ class ParticipantLoginForm(forms.Form):
     age = forms.IntegerField(label='Alter') 
 
 
-# class ParticipantProfileForm(forms.ModelForm):
-#     class Meta:
-#         model = Participant
-#         fields = ['family_members', 'arrival_date', 'departure_date']
-#         widgets = {
-#             'arrival_date': forms.DateInput(attrs={'type': 'date'}),
-#             'departure_date': forms.DateInput(attrs={'type': 'date'}),
-#         }
+class ChildForm(forms.ModelForm):
+    class Meta:
+        model = Child
+        fields = ['name', 'age']
+        labels = {
+            'name': 'Name des Kindes',
+            'age': 'Alter des Kindes',
+        }
+
+# FormSet для добавления нескольких детей (макс. 5 по умолчанию)
+ChildFormSet = inlineformset_factory(
+    Participant,
+    Child,
+    form=ChildForm,
+    extra=0,  # не добавляет лишних пустых форм, только по факту
+    can_delete=True,
+)
+
+
 
 class ParticipantProfileForm(forms.ModelForm):
     OVERNIGHT_CHOICES = [
@@ -58,7 +70,7 @@ class ParticipantProfileForm(forms.ModelForm):
         fields = [
             'participation_type', 'first_name', 'last_name', 'is_student', 'age',
             'comes_with_partner', 'arrival_date', 'departure_date', 'overnight_stays',
-            'family_members', 'has_children', 'children_ages',
+            'family_members', 'has_children', 'number_of_children',
             'food_preference', 'has_dietary_restrictions', 'dietary_details',
             'services', 'leisure_activities',
             'street', 'street_extra', 'postal_code', 'city',
@@ -68,7 +80,7 @@ class ParticipantProfileForm(forms.ModelForm):
         widgets = {
             'arrival_date': forms.DateInput(attrs={'type': 'date'}),
             'departure_date': forms.DateInput(attrs={'type': 'date'}),
-            'children_ages': forms.TextInput(attrs={'placeholder': 'z. B. 5, 8'}),
+            # 'children_ages': forms.TextInput(attrs={'placeholder': 'z. B. 5, 8'}),
             'dietary_details': forms.TextInput(attrs={'placeholder': 'z. B. Vegetarisch'}),
             'leisure_activities': forms.Textarea(attrs={'rows': 2}),
             'comment': forms.Textarea(attrs={'rows': 3}),
@@ -82,7 +94,7 @@ class ParticipantProfileForm(forms.ModelForm):
             'comes_with_partner': 'Komme mit Ehepartner',
             'family_members': 'Familienmitglieder',
             'has_children': 'Gibt es Kinder?',
-            'children_ages': 'Alter der Kinder',
+            # 'children_ages': 'Alter der Kinder',
             'food_preference': 'Mittagessen',
             'has_dietary_restrictions': 'Gibt es Einschränkungen beim Essen?',
             'dietary_details': 'Welche?',
@@ -98,11 +110,11 @@ class ParticipantProfileForm(forms.ModelForm):
             'privacy_accepted': 'Ich habe die Datenschutzerklärung gelesen und akzeptiert',
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        if cleaned_data.get('has_children') and not cleaned_data.get('children_ages'):
-            self.add_error('children_ages', 'Bitte geben Sie das Alter der Kinder an.')
-        if cleaned_data.get('has_dietary_restrictions') and not cleaned_data.get('dietary_details'):
-            self.add_error('dietary_details', 'Bitte geben Sie Details zu den Ernährungseinschränkungen an.')
-        if not cleaned_data.get('privacy_accepted'):
-            self.add_error('privacy_accepted', 'Bitte akzeptieren Sie die Datenschutzerklärung.')
+def clean(self):
+    cleaned_data = super().clean()
+    # if cleaned_data.get('has_children') and not cleaned_data.get('children_ages'):
+    #     self.add_error('children_ages', 'Bitte geben Sie das Alter der Kinder an.')
+    if cleaned_data.get('has_dietary_restrictions') and not cleaned_data.get('dietary_details'):
+        self.add_error('dietary_details', 'Bitte geben Sie Details zu den Ernährungseinschränkungen an.')
+    if not cleaned_data.get('privacy_accepted'):
+        self.add_error('privacy_accepted', 'Bitte akzeptieren Sie die Datenschutzerklärung.')
