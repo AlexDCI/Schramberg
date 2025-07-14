@@ -5,6 +5,24 @@ from .models import Participant, Child
 from django.forms import inlineformset_factory
 from django.db.models import Sum
 from collections import Counter
+from django.contrib.auth.hashers import make_password, check_password
+from django.db import IntegrityError
+
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.conf import settings
+from .forms import ParticipantPasswordResetRequestForm
+from .utils import generate_password_reset_token
+
+from django.http import Http404
+from .utils import verify_password_reset_token
+from .forms import ParticipantSetNewPasswordForm
+
+
+
+
+
+
 
 def staff_check(user):
     """Return True if the user is marked as staff.
@@ -18,21 +36,33 @@ def participant_login(request):
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             email = form.cleaned_data['email']
-            age = form.cleaned_data['age']
+            raw_password = form.cleaned_data['password']
 
-            participant, created = Participant.objects.get_or_create(
-                email=email,
-                defaults={'first_name': first_name, 'last_name': last_name}
-            )
+            try:
+                participant = Participant.objects.get(email=email)
+                # ✅ Проверка пароля
+                if not check_password(raw_password, participant.password):
+                    form.add_error('password', 'Falsches Passwort')
+                else:
+                    # Можно обновить имя, если надо
+                    if participant.first_name != first_name or participant.last_name != last_name:
+                        participant.first_name = first_name
+                        participant.last_name = last_name
+                        participant.save()
 
-            # При необходимости обновить имя
-            if not created and (participant.first_name != first_name or participant.last_name != last_name):
-                participant.first_name = first_name
-                participant.last_name = last_name
-                participant.save()
+                    request.session['participant_id'] = participant.id
+                    return redirect('participant_profile')
 
-            request.session['participant_id'] = participant.id
-            return redirect('participant_profile')
+            except Participant.DoesNotExist:
+                # 🔒 Хешируем пароль при создании нового участника
+                participant = Participant.objects.create(
+                    email=email,
+                    first_name=first_name,
+                    last_name=last_name,
+                    password=make_password(raw_password)
+                )
+                request.session['participant_id'] = participant.id
+                return redirect('participant_profile')
     else:
         form = ParticipantLoginForm()
 
@@ -90,42 +120,40 @@ def make_child_formset(participant, num_children, data=None):
 
 def process_form_and_formset(form, formset, participant):
     """
-    Handles saving the participant and all child forms.
-    - Saves the participant.
-    - Deletes any children marked for deletion.
-    - Saves all valid child forms.
-    - Updates the participant's number_of_children and has_children fields.
-    Обрабатывает сохранение участника и всех форм детей.
-    - Сохраняет участника.
-    - Удаляет всех детей, отмеченных на удаление.
-    - Сохраняет все валидные формы детей.
-    - Обновляет поля number_of_children и has_children у участника.
+    Обрабатывает сохранение участника и форм детей.
+    - Сохраняет участника с обработкой возможной ошибки дублирования email.
+    - Удаляет отмеченных детей.
+    - Сохраняет остальные формы.
+    - Обновляет количество детей у участника.
+    Возвращает True, если всё успешно, иначе False.
     """
-    participant = form.save(commit=False)
-    participant.save()
+    try:
+        participant = form.save(commit=False)
+        participant.save()
+    except IntegrityError:
+        form.add_error('email', 'Diese Email-Adresse wird bereits verwendet.')
+        return False  # Прерываем процесс при ошибке
+
+    # Удаление отмеченных детей
     for child_form in formset.forms:
         if child_form.cleaned_data.get('DELETE', False) and child_form.instance.pk:
             child_form.instance.delete()
+
+    # Сохраняем все формы
     formset.save()
+
+    # Обновляем количество детей
     num_children = participant.children.count()
     participant.number_of_children = num_children
     participant.has_children = num_children > 0
     participant.save()
 
+    return True
+
 def participant_profile(request):
     """
-    Main view for handling participant profile display and submission.
-    Splits logic for GET and POST requests and delegates to helper functions.
-    Handles:
-      - Rendering the profile form and dynamic number of child forms
-      - Processing form submissions and saving/deleting children
-      - Ensuring that at least one child form is available for new users
-      Основная view-функция для отображения и обработки профиля участника.
-    Разделяет логику для GET и POST-запросов и делегирует работу вспомогательным функциям.
-    Обеспечивает:
-      - Отображение формы профиля и динамического количества форм для детей
-      - Обработку отправки формы и сохранение/удаление детей
-      - Гарантирует, что для новых пользователей всегда есть хотя бы одна форма для ребёнка
+    Обрабатывает отображение и отправку формы профиля участника.
+    Добавлена проверка успешности сохранения (True/False).
     """
     participant = get_participant(request)
     if not participant:
@@ -135,20 +163,28 @@ def participant_profile(request):
         form = ParticipantProfileForm(request.POST, instance=participant)
         num_children = get_num_children(request, participant)
 
-        # If this is not the final submit, re-render with new number of child forms
         if 'submit' not in request.POST:
+            # Промежуточная отправка (например, при изменении количества детей)
             formset = make_child_formset(participant, num_children)
         else:
+            # Окончательное сохранение
             formset = ChildFormSet(request.POST, instance=participant, prefix='children')
             if form.is_valid() and formset.is_valid():
-                process_form_and_formset(form, formset, participant)
+                if process_form_and_formset(form, formset, participant):
+                    return render(request, 'users/profile.html', {
+                        'form': ParticipantProfileForm(instance=participant),
+                        'formset': ChildFormSet(instance=participant, prefix='children'),
+                        'success': True,
+                    })
+            else:
+        # ❗ Показываем те же формы обратно с ошибками (например, дублирующийся email)
                 return render(request, 'users/profile.html', {
-                    'form': ParticipantProfileForm(instance=participant),
-                    'formset': ChildFormSet(instance=participant, prefix='children'),
-                    'success': True,
+                    'form': form,
+                    'formset': formset,
                 })
+                # Если сохранение не удалось (например, email дублируется), остаёмся на форме
     else:
-        # GET request: always show at least one child form for new users
+        # GET-запрос
         num_children = participant.number_of_children or 0
         form = ParticipantProfileForm(instance=participant)
         formset = make_child_formset(participant, num_children)
@@ -215,50 +251,7 @@ def get_payment_list(participants):
         'note': p.comment,
     } for p in participants]
 
-# @login_required
-# @user_passes_test(staff_check)
-# def admin_dashboard(request):
-#     """
-#     Main admin dashboard view.  
-#     Главная функция админ-дешборда.
-#     """
-#     participants = Participant.objects.all()
 
-#     # General statistics / Общая статистика
-#     total_participants = participants.count()
-#     total_people = participants.aggregate(total=Sum('family_members'))['total'] or 0
-#     total_children = Child.objects.count()
-#     total_emails = participants.exclude(email='').count()
-
-#     # Kurtaxe groups / Курортный сбор
-#     kurtaxe_groups, kurtaxe_total = get_kurtaxe_groups(participants)
-
-#     # Bed linen / Постельное бельё
-#     bed_list, bed_total = get_bed_list(participants)
-
-#     # Email list / Email-рассылка
-#     email_list = get_email_list(participants)
-
-#     # Payments / Взносы участников
-#     payment_list = get_payment_list(participants)
-
-#     context = {
-#         'stats': {
-#             'total_participants': total_participants,
-#             'total_people': total_people,
-#             'total_children': total_children,
-#             'total_nights': sum(nights(p) for p in participants),
-#             'total_emails': total_emails,
-#         },
-#         'kurtaxe_groups': kurtaxe_groups,
-#         'kurtaxe_total': kurtaxe_total,
-#         'bed_list': bed_list,
-#         'bed_total': bed_total,
-#         'email_list': email_list,
-#         'payment_list': payment_list,
-#         'total_emails': total_emails,
-#     }
-#     return render(request, 'users/dashboard.html', context)
 
 def get_instrument_stats(participants):
     """
@@ -368,3 +361,56 @@ def admin_dashboard(request):
         'total_emails': total_emails,
     }
     return render(request, 'users/dashboard.html', context)
+
+
+# block send email
+
+def participant_password_reset_request(request):
+    if request.method == "POST":
+        form = ParticipantPasswordResetRequestForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            token = generate_password_reset_token(email)
+            reset_url = request.build_absolute_uri(
+                reverse('participant_password_reset_confirm', args=[token])
+            )
+            send_mail(
+                subject="Сброс пароля",
+                message=f"Перейдите по ссылке, чтобы сбросить пароль:\n{reset_url}",
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+            )
+            return redirect('participant_password_reset_done')
+    else:
+        form = ParticipantPasswordResetRequestForm()
+    return render(request, 'users/participant_password_reset_request.html', {'form': form})
+
+
+
+def participant_password_reset_confirm(request, token):
+    email = verify_password_reset_token(token)
+    if email is None:
+        raise Http404("Неверный или просроченный токен.")
+
+    participant = Participant.objects.filter(email=email).first()
+    if not participant:
+        raise Http404("Участник не найден.")
+
+    if request.method == "POST":
+        form = ParticipantSetNewPasswordForm(request.POST)
+        if form.is_valid():
+            new_password = form.cleaned_data['new_password1']
+            participant.set_password(new_password)
+            participant.save()
+            return redirect('participant_login')
+    else:
+        form = ParticipantSetNewPasswordForm()
+
+    return render(request, 'users/participant_password_reset_confirm.html', {'form': form})
+
+
+def participant_password_reset_done(request):
+    return render(request, 'users/participant_password_reset_done.html')
+
+def participant_password_reset_complete(request):
+    return render(request, 'users/participant_password_reset_complete.html')

@@ -1,12 +1,47 @@
 from django import forms
 from .models import Participant, Child
 from django.forms import inlineformset_factory
+import re
+
+class ParticipantSetNewPasswordForm(forms.Form):
+    new_password1 = forms.CharField(widget=forms.PasswordInput, label="Новый пароль")
+    new_password2 = forms.CharField(widget=forms.PasswordInput, label="Подтверждение пароля")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get("new_password1")
+        p2 = cleaned_data.get("new_password2")
+        if p1 and p2 and p1 != p2:
+            raise forms.ValidationError("Пароли не совпадают.")
+        return cleaned_data
+
+
+
+class ParticipantPasswordResetRequestForm(forms.Form):
+    email = forms.EmailField(label="Email", max_length=254)
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if not Participant.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email не найден.")
+        return email
+
 
 class ParticipantLoginForm(forms.Form):
     first_name = forms.CharField(label='Vorname')
     last_name = forms.CharField(label='Nachname')
     email = forms.EmailField(label='Email')
-    age = forms.IntegerField(label='Alter') 
+    password = forms.CharField(
+        label='Passwort',
+        widget=forms.PasswordInput,
+        help_text='Mindestens 8 Zeichen, Buchstaben und Zahlen'
+    )
+
+    def clean_password(self):
+        pwd = self.cleaned_data['password']
+        if len(pwd) < 8 or not any(c.isdigit() for c in pwd) or not any(c.isalpha() for c in pwd):
+            raise forms.ValidationError('Das Passwort muss mindestens 8 Zeichen lang sein und Buchstaben sowie Zahlen enthalten.')
+        return pwd
 
 
 class ChildForm(forms.ModelForm):

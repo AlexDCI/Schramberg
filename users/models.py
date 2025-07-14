@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password, check_password
 from django.db import models
 
 
@@ -6,6 +7,7 @@ class Participant(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
+    password = models.CharField(max_length=128)
     phone_number = models.CharField(max_length=20)
     city = models.CharField(max_length=100)
     postal_code = models.CharField(max_length=10)
@@ -60,6 +62,13 @@ class Participant(models.Model):
 
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+    
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    # 👉 Добавить метод для проверки пароля
+    def check_password(self, raw_password):
+        return check_password(raw_password, self.password)
 
 class Child(models.Model):
     participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='children')
