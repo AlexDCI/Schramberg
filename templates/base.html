@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}My Site{% endblock %}</title>
-    <style>
-        nav a {
-            margin-right: 15px;
-        }
-    </style>
+   {% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
 </head>
 <body>
+    <div class="background-overlay"></div>
+
+  <div class="content-wrapper">
     <nav>
         <a href="{% url 'home' %}">Home</a>
         <a href="{% url 'about' %}">About</a>
@@ -22,5 +22,7 @@
         {% block content %}
         {% endblock %}
     </div>
+  </div>
+    
 </body>
 </html>

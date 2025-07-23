@@ -1,0 +1,327 @@
+/* ======================================================
+   Стили для страницы: login.html (вход пользователя)
+   Расположение шаблона: users/templates/users/login.html
+   ====================================================== */
+
+.user-form {
+  max-width: 450px;
+  margin: 20px auto;
+  padding: 25px;
+  background-color: #f8f9fa; /* светлый фон */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Заголовок формы */
+.form-title {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Отдельная группа поля */
+.form-group {
+  margin-bottom: 18px;
+}
+
+/* Лейблы */
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #222;
+}
+
+/* Инпуты и селекты — стилизуем */
+.user-form input,
+.user-form select,
+.user-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.8px solid #ced4da;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.user-form input:focus,
+.user-form select:focus,
+.user-form textarea:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+}
+
+/* Подсказки */
+.form-help {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+/* Ошибки */
+.form-error {
+  margin-top: 4px;
+  color: #d9534f;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Ошибки, не привязанные к конкретному полю */
+.form-nonfield-error {
+  margin-bottom: 15px;
+  padding: 12px;
+  background-color: #f8d7da;
+  color: #842029;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+/* Кнопка отправки */
+.btn-submit {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-submit:hover {
+  background-color: #0056b3;
+}
+
+/* Ссылка "Забыл пароль" */
+.forgot-password {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.forgot-password a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+
+/* ======================================================
+   Стили для страницы: profile.html (профиль участника)
+   Расположение шаблона: users/templates/users/profile.html
+   ====================================================== */
+
+/* Заголовок профиля */
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Сообщение об успешном сохранении */
+.alert-success {
+  max-width: 500px;
+  margin: 0 auto 20px auto;
+  padding: 12px 16px;
+  border-radius: 6px;
+  background-color: #d4edda;
+  color: #155724;
+  font-weight: 500;
+  box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+
+/* Основная форма профиля */
+form {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fdfdfd;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+/* Поля формы */
+form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #222;
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1.5px solid #ccc;
+  transition: border-color 0.3s;
+  font-size: 1rem;
+}
+
+form input:focus,
+form select:focus,
+form textarea:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+/* Ошибки */
+.text-danger {
+  color: #d9534f;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Кнопка "Сохранить" */
+form button[name="submit"] {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: bold;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+form button[name="submit"]:hover {
+  background-color: #0056b3;
+}
+
+/* Секция "Kinder" */
+#children-section {
+  margin-top: 25px;
+  padding-top: 10px;
+  border-top: 1px solid #ddd;
+}
+
+#children-section h4 {
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+/* Карточка одного ребёнка */
+.child-form {
+  background-color: #f1f1f1;
+}
+
+/* Кнопка "Kind hinzufügen" */
+#add-child-btn {
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 6px;
+}
+
+/* Для пустой формы, скрытой в шаблоне */
+#empty-form-template {
+  display: none;
+}
+
+/* Мелкие корректировки */
+.col {
+  padding: 5px;
+}
+
+.col-auto {
+  padding: 5px;
+}
+
+
+/* ======================================================
+   Стили для страницы: dashboard.html (админ-панель)
+   Расположение шаблона: users/templates/users/dashboard.html
+   ====================================================== */
+
+/* Заголовки */
+h1, h2, h3 {
+  margin-top: 30px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Статистика вверху */
+.dashboard-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.dashboard-stats div {
+  flex: 1 1 220px;
+  background: white;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Таблицы */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 25px;
+  background-color: #fff;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 0 5px rgba(0,0,0,0.05);
+}
+
+table th,
+table td {
+  padding: 12px;
+  text-align: left;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+}
+
+table th {
+  background-color: #f1f1f1;
+  font-weight: 600;
+}
+
+table tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+table tr:hover {
+  background-color: #f5f5f5;
+}
+
+/* Списки */
+ul {
+  margin-bottom: 25px;
+  padding-left: 20px;
+}
+
+ul li {
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+/* Общие */
+b {
+  font-weight: 600;
+}

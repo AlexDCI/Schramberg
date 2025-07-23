@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
+    <link rel="stylesheet" href="{% static 'main/css/style.css' %}">
+
+
 
 {% block title %}Conference{% endblock %}
 
@@ -6,13 +10,13 @@
 <h1>Conference Info</h1>
 <hr>
 
-  <div>
-    <a href="{% url 'participant_login' %}">Zur Registrierung</a>
-    
-    {% if user.is_authenticated and user.is_staff %}
-      | <a href="{% url 'admin_dashboard' %}">Admin-Dashboard</a>
-    {% endif %}
-  </div>
+  <div class="conference-actions">
+  <a href="{% url 'participant_login' %}" class="btn-link">Zur Registrierung</a>
+
+  {% if user.is_authenticated and user.is_staff %}
+    <a href="{% url 'admin_dashboard' %}" class="btn-link btn-alt">Admin-Dashboard</a>
+  {% endif %}
+</div>
   <hr>
 <p>Pfingstkonferenz 7.–13. Juni 2026 in Schramberg-Sulgen
 Thema: Gemeinschaft in Heiligkeit und Erwartung der Ankunft unseres Herrn (1. Thessalonicher).
