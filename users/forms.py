@@ -2,27 +2,40 @@ from django import forms
 from .models import Participant, Child
 from django.forms import inlineformset_factory
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ValidationError
 import re
 
 class ParticipantRegisterForm(forms.ModelForm):
+    privacy_accepted = forms.BooleanField(
+        label="Ich habe die Datenschutzerklärung gelesen und akzeptiere sie",
+        required=True
+    )
+
     password = forms.CharField(
         widget=forms.PasswordInput,
-        label="Passwort"
+        label="Passwort",
+        min_length=8,
+        help_text="Mindestens 8 Zeichen, inkl. Buchstaben und Zahlen."
     )
 
     class Meta:
         model = Participant
-        fields = ['first_name', 'last_name', 'email', 'password']
+        fields = ['first_name', 'last_name', 'email', 'password', 'privacy_accepted']
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if Participant.objects.filter(email__iexact=email).exists():
-            raise forms.ValidationError("Diese Email-Adresse wird bereits verwendet.")
-        return email
+    def clean_password(self):
+        pwd = self.cleaned_data['password']
+        if not any(c.isdigit() for c in pwd) or not any(c.isalpha() for c in pwd):
+            raise ValidationError("Das Passwort muss Buchstaben und Zahlen enthalten.")
+        return pwd
+
+    def clean_privacy_accepted(self):
+        if not self.cleaned_data.get('privacy_accepted'):
+            raise ValidationError("Bitte akzeptieren Sie die Datenschutzerklärung.")
+        return True
 
     def save(self, commit=True):
         participant = super().save(commit=False)
-        participant.password = make_password(self.cleaned_data['password'])
+        participant.password = make_password(self.cleaned_data['password'])  # хэшируем пароль!
         if commit:
             participant.save()
         return participant

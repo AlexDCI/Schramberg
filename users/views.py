@@ -420,3 +420,6 @@ def participant_password_reset_done(request):
 
 def participant_password_reset_complete(request):
     return render(request, 'users/participant_password_reset_complete.html')
+
+def privacy_policy(request):
+    return render(request, 'users/privacy_policy.html')

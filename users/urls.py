@@ -8,6 +8,7 @@ urlpatterns = [
     path('profile/', views.participant_profile, name='participant_profile'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('register/', views.participant_register, name='participant_register'),
+    path('privacy/', views.privacy_policy, name='privacy_policy'),
 
     # Password reset (Django built-in)
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='users/password_reset.html'), name='password_reset'),
