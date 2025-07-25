@@ -5,10 +5,16 @@ from django.contrib.auth import views as auth_views
 urlpatterns = [
     path('conference/', views.participant_login, name='participant_login'),  # Вход и регистрация
     path('logout/', views.participant_logout, name='participant_logout'),
-    path('profile/', views.participant_profile, name='participant_profile'),
-    path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    # path('profile/', views.participant_profile, name='participant_profile'),
+    # path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('register/', views.participant_register, name='participant_register'),
     path('privacy/', views.privacy_policy, name='privacy_policy'),
+    path('registrierung/', views.participant_register, name='participant_register'),
+
+
+    path('profil/', views.participant_profile, name='participant_profile'),
+    path('anmeldung/neu/', views.registration_create, name='registration_create'),
+    path('anmeldung/<int:registration_id>/bearbeiten/', views.registration_edit, name='registration_edit'),
 
     # Password reset (Django built-in)
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='users/password_reset.html'), name='password_reset'),
