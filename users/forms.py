@@ -1,7 +1,31 @@
 from django import forms
 from .models import Participant, Child
 from django.forms import inlineformset_factory
+from django.contrib.auth.hashers import make_password
 import re
+
+class ParticipantRegisterForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput,
+        label="Passwort"
+    )
+
+    class Meta:
+        model = Participant
+        fields = ['first_name', 'last_name', 'email', 'password']
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if Participant.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Diese Email-Adresse wird bereits verwendet.")
+        return email
+
+    def save(self, commit=True):
+        participant = super().save(commit=False)
+        participant.password = make_password(self.cleaned_data['password'])
+        if commit:
+            participant.save()
+        return participant
 
 class ParticipantSetNewPasswordForm(forms.Form):
     new_password1 = forms.CharField(widget=forms.PasswordInput, label="Новый пароль")
@@ -22,19 +46,16 @@ class ParticipantPasswordResetRequestForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if not Participant.objects.filter(email=email).exists():
+        if not Participant.objects.filter(email__iexact=email).exists():
             raise forms.ValidationError("Email не найден.")
         return email
 
 
 class ParticipantLoginForm(forms.Form):
-    first_name = forms.CharField(label='Vorname')
-    last_name = forms.CharField(label='Nachname')
     email = forms.EmailField(label='Email')
     password = forms.CharField(
         label='Passwort',
         widget=forms.PasswordInput,
-        help_text='Mindestens 8 Zeichen, Buchstaben und Zahlen'
     )
 
     def clean_password(self):

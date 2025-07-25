@@ -3,9 +3,11 @@ from . import views
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path('register/', views.participant_login, name='participant_login'),  # Вход и регистрация
+    path('conference/', views.participant_login, name='participant_login'),  # Вход и регистрация
+    path('logout/', views.participant_logout, name='participant_logout'),
     path('profile/', views.participant_profile, name='participant_profile'),
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('register/', views.participant_register, name='participant_register'),
 
     # Password reset (Django built-in)
     path('password-reset/', auth_views.PasswordResetView.as_view(template_name='users/password_reset.html'), name='password_reset'),

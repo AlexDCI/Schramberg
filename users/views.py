@@ -17,10 +17,26 @@ from .utils import generate_password_reset_token
 from django.http import Http404
 from .utils import verify_password_reset_token
 from .forms import ParticipantSetNewPasswordForm
+from .forms import ParticipantRegisterForm
+from django.shortcuts import redirect
 
 
 
+def participant_register(request):
+    """
+    Этап 1: базовая регистрация участника (имя, email, пароль).
+    После регистрации — логин и редирект на форму профиля.
+    """
+    if request.method == 'POST':
+        form = ParticipantRegisterForm(request.POST)
+        if form.is_valid():
+            participant = form.save()
+            request.session['participant_id'] = participant.id
+            return redirect('participant_profile')  # переход на анкету
+    else:
+        form = ParticipantRegisterForm()
 
+    return render(request, 'users/registration.html', {'form': form})
 
 
 
@@ -33,41 +49,31 @@ def participant_login(request):
     if request.method == 'POST':
         form = ParticipantLoginForm(request.POST)
         if form.is_valid():
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
             email = form.cleaned_data['email']
             raw_password = form.cleaned_data['password']
 
             try:
-                participant = Participant.objects.get(email=email)
-                # ✅ Проверка пароля
+                participant = Participant.objects.get(email__iexact=email)
                 if not check_password(raw_password, participant.password):
                     form.add_error('password', 'Falsches Passwort')
                 else:
-                    # Можно обновить имя, если надо
-                    if participant.first_name != first_name or participant.last_name != last_name:
-                        participant.first_name = first_name
-                        participant.last_name = last_name
-                        participant.save()
-
                     request.session['participant_id'] = participant.id
                     return redirect('participant_profile')
-
             except Participant.DoesNotExist:
-                # 🔒 Хешируем пароль при создании нового участника
-                participant = Participant.objects.create(
-                    email=email,
-                    first_name=first_name,
-                    last_name=last_name,
-                    password=make_password(raw_password)
-                )
-                request.session['participant_id'] = participant.id
-                return redirect('participant_profile')
+                form.add_error('email', 'Kein Benutzer mit dieser Email gefunden.')
     else:
         form = ParticipantLoginForm()
+    return render(request, 'users/start_login.html', {'form': form})
 
-    return render(request, 'users/login.html', {'form': form})
 
+
+def participant_logout(request):
+    """
+    Удаляет participant_id из сессии и перенаправляет на страницу входа.
+    """
+    if 'participant_id' in request.session:
+        del request.session['participant_id']
+    return redirect('participant_login')  # или на 'start' страницу, если хочешь
 
 
 

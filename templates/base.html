@@ -14,6 +14,14 @@
         <a href="{% url 'home' %}">Home</a>
         <a href="{% url 'about' %}">About</a>
         <a href="{% url 'conference' %}">Conference</a>
+        {% if request.session.participant_id %}
+      <form action="{% url 'participant_logout' %}" method="post" style="display: inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" style="background: none; border: none; color: blue; cursor: pointer;">Logout</button>
+       </form>
+      {% else %}
+      <a href="{% url 'participant_login' %}">Login</a>
+      {% endif %}
     </nav>
 
     <hr>
