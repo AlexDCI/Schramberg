@@ -1,7 +1,29 @@
 <h2>Registrierung / Anmeldung des Teilnehmers</h2>
 
-<form method="post">
+<form method="post" novalidate>
   {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Weiter</button>
+
+  {% for field in form.visible_fields %}
+    <div class="mb-3">
+      <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+      {{ field }}
+      {% if field.help_text %}
+        <small class="form-text text-muted">{{ field.help_text }}</small>
+      {% endif %}
+      {% for error in field.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+
+  {% if form.non_field_errors %}
+    <div class="text-danger">
+      {{ form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <button type="submit" class="btn btn-primary">Weiter</button>
 </form>
+<p>
+  <a href="{% url 'participant_password_reset_request' %}">Passwort vergessen?</a>
+</p>

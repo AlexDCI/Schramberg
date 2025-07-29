@@ -1,11 +1,116 @@
 <h2>Teilnehmerprofil</h2>
 
 {% if success %}
-  <p style="color: green;">Daten wurden erfolgreich gespeichert!</p>
+  <div class="alert alert-success">Daten wurden erfolgreich gespeichert!</div>
 {% endif %}
 
-<form method="post">
+<form method="post" novalidate>
   {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Speichern</button>
+  {{ form.non_field_errors }}
+
+  {% for field in form.visible_fields %}
+    <div class="mb-3" id="field-{{ field.name }}">
+      {% if field.name == "number_of_children" %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        <script>
+          // При изменении количества детей отправляем форму, чтобы сервер сгенерировал нужное число форм
+          document.addEventListener('DOMContentLoaded', function () {
+            const numInput = document.getElementById('{{ field.id_for_label }}');
+            if (numInput) {
+              numInput.addEventListener('change', function () {
+                this.form.submit();
+              });
+            }
+          });
+        </script>
+        {% for error in field.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+
+        {# --- БЛОК ДЕТЕЙ И КНОПКА СРАЗУ ПОД "number_of_children" --- #}
+        <div id="children-section" class="mb-4">
+          <h4>Kinder</h4>
+          {{ formset.management_form }}
+          <div id="children-forms">
+            {% for form_child in formset.forms %}
+              <div class="child-form border rounded p-3 mb-2">
+                {% for hidden in form_child.hidden_fields %}
+                  {{ hidden }}
+                {% endfor %}
+                <div class="row">
+                  <div class="col">
+                    {{ form_child.name.label_tag }} {{ form_child.name }}
+                  </div>
+                  <div class="col">
+                    {{ form_child.age.label_tag }} {{ form_child.age }}
+                  </div>
+                  <div class="col-auto align-self-end">
+                    {% if form_child.instance.pk %}
+                      <div class="form-check">
+                        {{ form_child.DELETE }}
+                        <label class="form-check-label" for="{{ form_child.DELETE.id_for_label }}">
+                          Удалить
+                        </label>
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+                {% for error in form_child.non_field_errors %}
+                  <div class="text-danger">{{ error }}</div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+          <button type="button" id="add-child-btn" class="btn btn-secondary mb-3">Kind hinzufügen</button>
+        </div>
+      {% elif field.name != "has_children" %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% for error in field.errors %}
+          <div class="text-danger">{{ error }}</div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-primary" name="submit">Speichern</button>
 </form>
+
+<!-- Шаблон пустой формы для JS -->
+<div id="empty-form-template" style="display:none;">
+  {% for hidden in formset.empty_form.hidden_fields %}
+    {{ hidden }}
+  {% endfor %}
+  <div class="row">
+    <div class="col">
+      {{ formset.empty_form.name.label_tag }} {{ formset.empty_form.name }}
+    </div>
+    <div class="col">
+      {{ formset.empty_form.age.label_tag }} {{ formset.empty_form.age }}
+    </div>
+    <div class="col-auto align-self-end">
+      <!-- DELETE не выводим для новых форм -->
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const addBtn = document.getElementById('add-child-btn');
+  if (!addBtn) return;
+  const formContainer = document.getElementById('children-forms');
+  const emptyFormHtml = document.getElementById('empty-form-template').innerHTML;
+  const totalFormsInput = document.querySelector('[name="children-TOTAL_FORMS"]');
+
+  addBtn.addEventListener('click', function () {
+    let count = parseInt(totalFormsInput.value);
+    let formHtml = emptyFormHtml.replace(/__prefix__/g, count);
+    let wrapper = document.createElement('div');
+    wrapper.className = 'child-form border rounded p-3 mb-2';
+    wrapper.innerHTML = formHtml;
+    formContainer.appendChild(wrapper);
+    totalFormsInput.value = count + 1;
+  });
+});
+</script>

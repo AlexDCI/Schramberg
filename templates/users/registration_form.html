@@ -1,0 +1,17 @@
+<h2>{% if edit_mode %}Anmeldung bearbeiten{% else %}Neue Anmeldung{% endif %}</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+
+  <h4>Kinder:</h4>
+  {{ formset.management_form }}
+  {% for child_form in formset %}
+    <div style="border: 1px solid #ccc; padding: 10px;">
+      {{ child_form.as_p }}
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-primary">Speichern</button>
+  <a href="{% url 'participant_profile' %}">Zurück</a>
+</form>

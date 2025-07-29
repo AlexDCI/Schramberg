@@ -1,28 +1,167 @@
-{% extends "base.html" %}
-
 {% block title %}Admin-Dashboard{% endblock %}
 
 {% block content %}
-  <h2>Admin-Bereich: Teilnehmer</h2>
+  <h1>Admin-Bereich / Админ-панель участников</h1>
 
-  <p><strong>Gesamtanzahl der Personen:</strong> {{ total_people }}</p>
+  <!-- Общая статистика -->
+  <div class="dashboard-stats">
+    <div>Anmeldungen / Регистрации: {{ stats.total_participants }}</div>
+    <div>Personen insgesamt / Всего людей: {{ stats.total_people }}</div>
+    <div>Kinder insgesamt / Всего детей: {{ stats.total_children }}</div>
+    <div>Übernachtungen insgesamt / Всего ночей: {{ stats.total_nights }}</div>
+    <div>E-Mails insgesamt / Всего email: {{ stats.total_emails }}</div>
+  </div>
 
-  <table border="1" cellpadding="5">
+  <!-- Музыкальные инструменты -->
+  <h2>Musikinstrumente / Музыкальные инструменты</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <tr><th>Instrument / Инструмент</th><th>Anzahl / Кол-во</th></tr>
+    {% for name, count in instrument_stats.items %}
+      <tr><td>{{ name|capfirst }}</td><td>{{ count }}</td></tr>
+    {% empty %}
+      <tr><td colspan="2">Keine Daten / Нет данных</td></tr>
+    {% endfor %}
+  </table>
+
+  <!-- Служения -->
+  <h2>Dienste / Служения</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <tr><th>Dienst / Служение</th><th>Anzahl / Кол-во</th></tr>
+    {% for name, count in service_stats.items %}
+      <tr><td>{{ name|capfirst }}</td><td>{{ count }}</td></tr>
+    {% empty %}
+      <tr><td colspan="2">Keine Daten / Нет данных</td></tr>
+    {% endfor %}
+  </table>
+
+  <!-- Питание -->
+  <h2>Ernährung / Питание</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <tr><th>Typ / Тип</th><th>Anzahl / Кол-во</th></tr>
+    {% for name, count in food_stats.items %}
+      <tr>
+        <td>
+          {% if name == 'normal' %}Normal / Обычное
+          {% elif name == 'vegetarian' %}Vegetarisch / Вегетарианское
+          {% elif name == 'lactose_free' %}Laktosefrei / Безлактозное
+          {% else %}{{ name }}{% endif %}
+        </td>
+        <td>{{ count }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="2">Keine Daten / Нет данных</td></tr>
+    {% endfor %}
+  </table>
+
+  <!-- Особые пожелания по питанию -->
+  <h3>Besondere Wünsche / Особые пожелания</h3>
+  <ul>
+    {% for item in special_diets %}
+      <li>{{ item.name }}: {{ item.details }}</li>
+    {% empty %}
+      <li>Keine besonderen Wünsche / Нет особых пожеланий</li>
+    {% endfor %}
+  </ul>
+
+  <!-- Комментарии и особые случаи -->
+  <h2>Bemerkungen / Примечания</h2>
+  <ul>
+    {% for note in important_notes %}
+      <li><b>{{ note.name }}</b>: {{ note.note }}</li>
+    {% empty %}
+      <li>Keine Bemerkungen / Нет примечаний</li>
+    {% endfor %}
+  </ul>
+
+  <!-- Курортный сбор -->
+  <h2>Kurtaxe (Kurortgebühr) / Курортный сбор</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+      <th>Gruppe / Группа</th>
+      <th>Anzahl Personen / Кол-во человек</th>
+      <th>Übernachtungen / Ночей</th>
+      <th>Kurtaxe / Курортный сбор</th>
+      <th>Rabatte / Скидки</th>
+    </tr>
+    {% for group in kurtaxe_groups %}
+      <tr>
+        <td>{{ group.name }}</td>
+        <td>{{ group.people }}</td>
+        <td>{{ group.nights }}</td>
+        <td>{{ group.kurtaxe_sum }}</td>
+        <td>{{ group.discount }}</td>
+      </tr>
+    {% endfor %}
+    <tr>
+      <td colspan="3"><b>Gesamtsumme / Итого</b></td>
+      <td colspan="2">{{ kurtaxe_total }}</td>
+    </tr>
+  </table>
+
+  <!-- Постельное бельё -->
+  <h2>Bettwäsche / Постельное бельё</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+      <th>Gruppe/Nummer / Группа/Номер</th>
+      <th>Anzahl Sets / Кол-во комплектов</th>
+    </tr>
+    {% for bed in bed_list %}
+      <tr>
+        <td>{{ bed.group }}</td>
+        <td>{{ bed.count }}</td>
+      </tr>
+    {% endfor %}
+    <tr>
+      <td><b>Gesamtsumme / Итого</b></td>
+      <td>{{ bed_total }}</td>
+    </tr>
+  </table>
+
+  <!-- Email-рассылка -->
+  <h2>E-Mail-Verteiler / Email-рассылка</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
+    <tr>
+      <th>Gruppe/Nummer / Группа/Номер</th>
+      <th>E-Mail</th>
+    </tr>
+    {% for email in email_list %}
+      <tr>
+        <td>{{ email.group }}</td>
+        <td>{{ email.address }}</td>
+      </tr>
+    {% endfor %}
+    <tr>
+      <td><b>Gesamtsumme / Итого</b></td>
+      <td>{{ total_emails }}</td>
+    </tr>
+  </table>
+
+  <!-- Взносы участников -->
+  <h2>TN Beiträge / Взносы участников</h2>
+  <table border="1" cellpadding="5" cellspacing="0">
     <tr>
       <th>Name</th>
       <th>E-Mail</th>
-      <th>Anzahl der Familienmitglieder</th>
-      <th>Anreisedatum</th>
-      <th>Abreisedatum</th>
+      <th>Anzahl Personen / Кол-во человек</th>
+      <th>Übernachtungen / Ночей</th>
+      <th>Vollpreis / Сумма (полная)</th>
+      <th>Teilpreis / Сумма (частичная)</th>
+      <th>Gesamt / Итого</th>
+      <th>Zahlungsart / Оплата</th>
+      <th>Bemerkung / Примечание</th>
     </tr>
-    {% for p in participants %}
-    <tr>
-      <td>{{ p.full_name }}</td>
-      <td>{{ p.email }}</td>
-      <td>{{ p.family_members }}</td>
-      <td>{{ p.arrival_date }}</td>
-      <td>{{ p.departure_date }}</td>
-    </tr>
+    {% for p in payment_list %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.email }}</td>
+        <td>{{ p.people }}</td>
+        <td>{{ p.nights }}</td>
+        <td>{{ p.full_price }}</td>
+        <td>{{ p.partial_price }}</td>
+        <td>{{ p.total }}</td>
+        <td>{{ p.payment_method }}</td>
+        <td>{{ p.note }}</td>
+      </tr>
     {% endfor %}
   </table>
 {% endblock %}
