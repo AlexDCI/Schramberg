@@ -1,0 +1,46 @@
+<h2>Anmeldung abschließen</h2>
+
+<h4>Erwachsene:</h4>
+<ul>
+  {% for adult in adults %}
+    <li>
+      <b>{{ adult.first_name }} {{ adult.last_name }}</b>,
+      {{ adult.gender }}, {{ adult.age }} Jahre, {{ adult.participation_type }}
+      {% if adult.is_full_week %}<strong> (Vollzeit)</strong>{% endif %}<br>
+      {% if adult.services %}
+        <b>Dienste:</b>
+        {% for code in adult.services_list %}
+          {{ code }},
+        {% endfor %}
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>Keine Erwachsenen</li>
+  {% endfor %}
+</ul>
+
+<h4>Kinder:</h4>
+<ul>
+  {% for child in children %}
+    <li>
+      <b>{{ child.first_name }} {{ child.last_name }}</b>,
+      {{ child.gender }}, {{ child.age }} Jahre, {{ child.participation_type }}
+      {% if child.is_full_week %}<strong> (Vollzeit)</strong>{% endif %}<br>
+      {% if child.services %}
+        <b>Dienste:</b>
+        {% for code in child.services_list %}
+          {{ code }},
+        {% endfor %}
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>Keine Kinder</li>
+  {% endfor %}
+</ul>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit" class="btn btn-success">Anmeldung abschließen</button>
+</form>
+<a href="{% url 'registration_start' %}" class="btn btn-link">Zurück</a>

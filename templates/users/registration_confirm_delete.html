@@ -1,0 +1,13 @@
+<!-- templates/users/registration_confirm_delete.html -->
+<h2>Anmeldung löschen</h2>
+<p>
+  Bist du sicher, dass du die Anmeldung <strong>#{{ reg.id }}</strong> löschen möchtest?
+  <br>
+  <b>Hinweis:</b> Alle zugehörigen Erwachsene und Kinder werden ebenfalls gelöscht!
+</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Ja, löschen!</button>
+  <a href="{% url 'participant_profile' %}" class="btn btn-secondary">Abbrechen</a>
+</form>

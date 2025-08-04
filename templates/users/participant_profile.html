@@ -4,12 +4,56 @@
 <ul>
   {% for reg in registrations %}
     <li>
-      {{ reg.participation_type }} | {{ reg.arrival_date }}
-      <a href="{% url 'registration_edit' reg.id %}">Bearbeiten</a>
+      <strong>Anmeldung #{{ reg.id }}</strong>
+      <ul>
+        <li><b>Erwachsene:</b>
+          {% for adult in reg.adults.all %}
+            <b>{{ adult.first_name }} {{ adult.last_name }}</b> |
+            {{ adult.gender }} | {{ adult.age }} Jahre | {{ adult.participation_type }}
+            {% if adult.is_full_week %} (Vollzeit){% endif %}
+            {% if adult.services %}
+              | Dienste:
+              {% for code in adult.services_list %}
+                {{ code }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% endif %}
+            <!-- Можно добавить редактировать/удалить взрослого здесь -->
+            <a href="{% url 'edit_adult' adult.id %}" class="btn btn-outline-secondary btn-sm">Bearbeiten</a>
+            <a href="{% url 'delete_adult' adult.id %}" class="btn btn-outline-danger btn-sm"
+               onclick="return confirm('Erwachsenen wirklich löschen?');">Löschen</a>
+            <br>
+          {% empty %}
+            keine
+          {% endfor %}
+        </li>
+        <li><b>Kinder:</b>
+          {% for child in reg.children.all %}
+            <b>{{ child.first_name }} {{ child.last_name }}</b> |
+            {{ child.gender }} | {{ child.age }} Jahre | {{ child.participation_type }}
+            {% if child.is_full_week %} (Vollzeit){% endif %}
+            {% if child.services %}
+              | Dienste:
+              {% for code in child.services_list %}
+                {{ code }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+            {% endif %}
+            <a href="{% url 'edit_child' child.id %}" class="btn btn-outline-secondary btn-sm">Bearbeiten</a>
+            <a href="{% url 'delete_child' child.id %}" class="btn btn-outline-danger btn-sm"
+               onclick="return confirm('Kind wirklich löschen?');">Löschen</a>
+            <br>
+          {% empty %}
+            keine
+          {% endfor %}
+        </li>
+      </ul>
+      <a href="{% url 'registration_edit' reg.id %}" class="btn btn-outline-primary btn-sm">Anmeldung bearbeiten</a>
+      <a href="{% url 'registration_delete' reg.id %}" class="btn btn-outline-danger btn-sm"
+         onclick="return confirm('Anmeldung wirklich löschen?');">Anmeldung löschen</a>
     </li>
   {% empty %}
     <li>Keine Anmeldungen vorhanden.</li>
   {% endfor %}
 </ul>
 
-<a href="{% url 'registration_create' %}" class="btn btn-success">Neue Anmeldung erstellen</a>
+<a href="{% url 'registration_start' %}" class="btn btn-success">Neue Anmeldung erstellen</a>
+<a href="{% url 'home' %}" class="btn btn-outline-info">Zur Hauptseite</a>

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Participant, Registration, Child
+from .models import Participant, Registration,Adult, Child
 from django.forms import inlineformset_factory
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ValidationError
@@ -79,16 +79,22 @@ class ParticipantLoginForm(forms.Form):
     
 
 class RegistrationForm(forms.ModelForm):
-    OVERNIGHT_CHOICES = [
-        ('sat_sun', 'Sa - So'),
-        ('sun_mon', 'So - Mo'),
-        ('mon_tue', 'Mo - Di'),
-        ('tue_wed', 'Di - Mi'),
-        ('wed_thu', 'Mi - Do'),
-        ('thu_fri', 'Do - Fr'),
-        ('full_week', 'Vollzeit'),
-    ]
-
+    class Meta:
+        model = Registration
+        fields = [
+            'leisure_activities',
+            'church_contact',
+            'needs_transport',
+            'has_dietary_restrictions',
+            'dietary_details',
+            'comment',
+        ]
+        widgets = {
+            'leisure_activities': forms.Textarea(attrs={'rows': 2}),
+            'comment': forms.Textarea(attrs={'rows': 3}),
+        }
+        
+class AdultForm(forms.ModelForm):
     SERVICES_CHOICES = [
         ('guitar', 'Gitarre'),
         ('piano', 'Klavier'),
@@ -99,155 +105,62 @@ class RegistrationForm(forms.ModelForm):
         ('tech', 'Technik'),
         ('microphones', 'Mikrofondienst'),
     ]
-
-    overnight_stays = forms.MultipleChoiceField(
-        choices=OVERNIGHT_CHOICES,
-        widget=forms.CheckboxSelectMultiple,
-        required=False,
-        label='Übernachten'
-    )
-
     services = forms.MultipleChoiceField(
         choices=SERVICES_CHOICES,
         widget=forms.CheckboxSelectMultiple,
         required=False,
-        label='Dienste'
+        label="Dienste"
     )
 
     class Meta:
-        model = Registration
-        exclude = ['participant']
+        model = Adult
+        exclude = ['registration']
         widgets = {
             'arrival_date': forms.DateInput(attrs={'type': 'date'}),
             'departure_date': forms.DateInput(attrs={'type': 'date'}),
-            'dietary_details': forms.TextInput(attrs={'placeholder': 'z. B. Vegetarisch'}),
-            'leisure_activities': forms.Textarea(attrs={'rows': 2}),
-            'comment': forms.Textarea(attrs={'rows': 3}),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        if cleaned_data.get('has_dietary_restrictions') and not cleaned_data.get('dietary_details'):
-            self.add_error('dietary_details', 'Bitte geben Sie Details zu den Einschränkungen an.')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.services:
+            self.fields['services'].initial = self.instance.services.split(',')
+
+    def clean_services(self):
+        return ','.join(self.cleaned_data['services'])
 
 class ChildForm(forms.ModelForm):
+    SERVICES_CHOICES = [
+        ('guitar', 'Gitarre'),
+        ('piano', 'Klavier'),
+        ('kids_small', 'Kleinkinder'),
+        ('kids_kiga', 'Kiga'),
+        ('kids_school', 'Schüler'),
+        ('chairs', 'Stuhldienst'),
+        ('tech', 'Technik'),
+        ('microphones', 'Mikrofondienst'),
+    ]
+    services = forms.MultipleChoiceField(
+        choices=SERVICES_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Dienste"
+    )
+
     class Meta:
         model = Child
-        fields = ['name', 'age']
-        labels = {
-            'name': 'Name des Kindes',
-            'age': 'Alter des Kindes',
+        exclude = ['registration']
+        widgets = {
+            'arrival_date': forms.DateInput(attrs={'type': 'date'}),
+            'departure_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
-ChildFormSet = inlineformset_factory(
-    Registration,
-    Child,
-    form=ChildForm,
-    extra=1,
-    can_delete=True
-)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.services:
+            self.fields['services'].initial = self.instance.services.split(',')
 
-
-# class ChildForm(forms.ModelForm):
-#     class Meta:
-#         model = Child
-#         fields = ['name', 'age']
-#         labels = {
-#             'name': 'Name des Kindes',
-#             'age': 'Alter des Kindes',
-#         }
-
-# # FormSet для добавления нескольких детей (макс. 5 по умолчанию)
-# ChildFormSet = inlineformset_factory(
-#     Participant,
-#     Child,
-#     form=ChildForm,
-#     extra=0,  # не добавляет лишних пустых форм, только по факту
-#     can_delete=True,
-# )
-
-
-
-# class ParticipantProfileForm(forms.ModelForm):
-#     OVERNIGHT_CHOICES = [
-#         ('sat_sun', 'Sa - So'),
-#         ('sun_mon', 'So - Mo'),
-#         ('mon_tue', 'Mo - Di'),
-#         ('tue_wed', 'Di - Mi'),
-#         ('wed_thu', 'Mi - Do'),
-#         ('thu_fri', 'Do - Fr'),
-#         ('full_week', 'Vollzeit'),
-#     ]
-
-#     SERVICES_CHOICES = [
-#         ('guitar', 'Gitarre'),
-#         ('piano', 'Klavier'),
-#         ('kids_small', 'Kleinkinder'),
-#         ('kids_kiga', 'Kiga'),
-#         ('kids_school', 'Schüler'),
-#         ('chairs', 'Stuhldienst'),
-#         ('tech', 'Technik'),
-#         ('microphones', 'Mikrofondienst'),
-#     ]
-
-#     overnight_stays = forms.MultipleChoiceField(
-#         choices=OVERNIGHT_CHOICES,
-#         widget=forms.CheckboxSelectMultiple,
-#         required=False,
-#         label='Übernachten'
-#     )
-
-#     services = forms.MultipleChoiceField(
-#         choices=SERVICES_CHOICES,
-#         widget=forms.CheckboxSelectMultiple,
-#         required=False,
-#         label='Dienste'
-#     )
-
-#     class Meta:
-#         model = Participant
-#         fields = [
-#             'participation_type', 'first_name', 'last_name', 'is_student', 'age',
-#             'comes_with_partner', 'arrival_date', 'departure_date', 'overnight_stays',
-#             'family_members', 'has_children', 'number_of_children',
-#             'food_preference', 'has_dietary_restrictions', 'dietary_details',
-#             'services', 'leisure_activities',
-#             'street', 'street_extra', 'postal_code', 'city',
-#             'phone_number', 'email', 'church_contact',
-#             'comment', 'privacy_accepted'
-#         ]
-#         widgets = {
-#             'arrival_date': forms.DateInput(attrs={'type': 'date'}),
-#             'departure_date': forms.DateInput(attrs={'type': 'date'}),
-#             # 'children_ages': forms.TextInput(attrs={'placeholder': 'z. B. 5, 8'}),
-#             'dietary_details': forms.TextInput(attrs={'placeholder': 'z. B. Vegetarisch'}),
-#             'leisure_activities': forms.Textarea(attrs={'rows': 2}),
-#             'comment': forms.Textarea(attrs={'rows': 3}),
-#         }
-#         labels = {
-#             'participation_type': 'Ich möchte',
-#             'first_name': 'Vorname',
-#             'last_name': 'Nachname',
-#             'is_student': 'Schüler/Azubi/Student',
-#             'age': 'Alter',
-#             'comes_with_partner': 'Komme mit Ehepartner',
-#             'family_members': 'Familienmitglieder',
-#             'has_children': 'Gibt es Kinder?',
-#             # 'children_ages': 'Alter der Kinder',
-#             'food_preference': 'Mittagessen',
-#             'has_dietary_restrictions': 'Gibt es Einschränkungen beim Essen?',
-#             'dietary_details': 'Welche?',
-#             'services': 'Dienste',
-#             'leisure_activities': 'Ich biete folgende Freizeit-Aktivitäten an',
-#             'street': 'Straße',
-#             'street_extra': 'Straße Zusatz',
-#             'postal_code': 'PLZ',
-#             'city': 'Ort',
-#             'phone_number': 'Handy-Nummer',
-#             'church_contact': 'Gemeinschaft oder Kontakt mit der Gemeinde in:',
-#             'comment': 'Bemerkungen',
-#             'privacy_accepted': 'Ich habe die Datenschutzerklärung gelesen und akzeptiert',
-#         }
+    def clean_services(self):
+        return ','.join(self.cleaned_data['services'])
 
 def clean(self):
     cleaned_data = super().clean()

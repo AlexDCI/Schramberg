@@ -1,0 +1,67 @@
+<h2>Neue Anmeldung erstellen</h2>
+
+<h4>Bisher hinzugefügte Erwachsene:</h4>
+<ul>
+  {% for adult in reg.adults.all %}
+    <li>
+      <b>{{ adult.first_name }} {{ adult.last_name }}</b>,
+      {{ adult.gender }}, {{ adult.age }} Jahre, {{ adult.participation_type }}
+      <a href="{% url 'edit_adult' adult.id %}" class="btn btn-outline-secondary btn-sm">Bearbeiten</a>
+      <a href="{% url 'delete_adult' adult.id %}" class="btn btn-outline-danger btn-sm"
+         onclick="return confirm('Erwachsenen wirklich löschen?');">Löschen</a>
+    </li>
+  {% empty %}
+    <li>Noch keine Erwachsenen</li>
+  {% endfor %}
+</ul>
+
+<h4>Bisher hinzugefügte Kinder:</h4>
+<ul>
+  {% for child in reg.children.all %}
+    <li>
+      <b>{{ child.first_name }} {{ child.last_name }}</b>,
+      {{ child.gender }}, {{ child.age }} Jahre, {{ child.participation_type }}
+      <a href="{% url 'edit_child' child.id %}" class="btn btn-outline-secondary btn-sm">Bearbeiten</a>
+      <a href="{% url 'delete_child' child.id %}" class="btn btn-outline-danger btn-sm"
+         onclick="return confirm('Kind wirklich löschen?');">Löschen</a>
+    </li>
+  {% empty %}
+    <li>Noch keine Kinder</li>
+  {% endfor %}
+</ul>
+
+    <div class="mb-2">
+        <a href="{% url 'registration_add_adult' %}" class="btn btn-primary w-100 mb-2">Erwachsenen hinzufügen</a>
+    </div>
+    <div class="mb-2">
+        <a href="{% url 'registration_add_child' %}" class="btn btn-secondary w-100">Kind hinzufügen</a>
+    </div>
+
+<hr>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="mb-3">
+    {{ form.leisure_activities.label_tag }} {{ form.leisure_activities }}
+  </div>
+  <div class="mb-3">
+    {{ form.church_contact.label_tag }} {{ form.church_contact }}
+  </div>
+  <div class="mb-3">
+    {{ form.needs_transport.label_tag }} {{ form.needs_transport }}
+  </div>
+  <div class="mb-3">
+    {{ form.has_dietary_restrictions.label_tag }} {{ form.has_dietary_restrictions }}
+  </div>
+  <div class="mb-3">
+    {{ form.dietary_details.label_tag }} {{ form.dietary_details }}
+  </div>
+  <div class="mb-3">
+    {{ form.comment.label_tag }} {{ form.comment }}
+  </div>
+
+  <button type="submit" class="btn btn-success">Anmeldung abschließen</button>
+  <a href="{% url 'participant_profile' %}" class="btn btn-link">Zurück</a>
+</form>

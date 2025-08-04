@@ -1,0 +1,111 @@
+<h2>Erwachsenen hinzufügen</h2>
+{% if form.errors %}
+  <div class="alert alert-danger">
+    <b>Fehler im Formular:</b>
+    {{ form.errors }}
+  </div>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+
+  <div class="mb-3">
+    <label for="{{ form.first_name.id_for_label }}">Vorname:</label>
+    {{ form.first_name }}
+    {% for error in form.first_name.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    <label for="{{ form.last_name.id_for_label }}">Nachname:</label>
+    {{ form.last_name }}
+    {% for error in form.last_name.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.gender.label_tag }} {{ form.gender }}
+    {% for error in form.gender.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.age.label_tag }} {{ form.age }}
+    {% for error in form.age.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.participation_type.label_tag }} {{ form.participation_type }}
+    {% for error in form.participation_type.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.arrival_date.label_tag }} {{ form.arrival_date }}
+    {% for error in form.arrival_date.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.departure_date.label_tag }} {{ form.departure_date }}
+    {% for error in form.departure_date.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.is_full_week.label_tag }} {{ form.is_full_week }}
+    {% for error in form.is_full_week.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.housing_preference.label_tag }} {{ form.housing_preference }}
+    {% for error in form.housing_preference.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.is_student.label_tag }} {{ form.is_student }}
+    {% for error in form.is_student.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.comes_with_partner.label_tag }} {{ form.comes_with_partner }}
+    {% for error in form.comes_with_partner.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    {{ form.food_preference.label_tag }} {{ form.food_preference }}
+    {% for error in form.food_preference.errors %}
+      <div class="text-danger">{{ error }}</div>
+    {% endfor %}
+  </div>
+
+  <div class="mb-3">
+    <label>Dienste:</label>
+    <div>
+      {{ form.services }}
+      {% for error in form.services.errors %}
+        <div class="text-danger">{{ error }}</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Speichern</button>
+  <a href="{% url 'registration_start' %}" class="btn btn-link">Zurück</a>
+</form>

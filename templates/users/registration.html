@@ -1,32 +1,43 @@
-<h2>Registrierung</h2>
+<h2>Willkommen {{ participant.full_name }}</h2>
 
-<form method="post">
-  {% csrf_token %}
-
-  {% for field in form %}
-    {% if field.name != 'privacy_accepted' %}
-      <div class="mb-3">
-        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
-        {% for error in field.errors %}
-          <div class="text-danger">{{ error }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
+<h3>Ihre Anmeldungen:</h3>
+<ul>
+  {% for reg in registrations %}
+    <li>
+      <strong>Anmeldung #{{ reg.id }}</strong>
+      <ul>
+        <li><b>Erwachsene:</b>
+          {% for adult in reg.adults.all %}
+            <b>{{ adult.first_name }} {{ adult.last_name }}</b> |
+            {{ adult.gender }} | {{ adult.age }} Jahre | {{ adult.participation_type }}
+            {% if adult.is_full_week %} (Vollzeit){% endif %}
+            {% if adult.services %}
+              | Dienste: {% for code in adult.services.split(',') %}{{ code }}, {% endfor %}
+            {% endif %}
+            <br>
+          {% empty %}
+            keine
+          {% endfor %}
+        </li>
+        <li><b>Kinder:</b>
+          {% for child in reg.children.all %}
+            <b>{{ child.first_name }} {{ child.last_name }}</b> |
+            {{ child.gender }} | {{ child.age }} Jahre | {{ child.participation_type }}
+            {% if child.is_full_week %} (Vollzeit){% endif %}
+            {% if child.services %}
+              | Dienste: {% for code in child.services.split(',') %}{{ code }}, {% endfor %}
+            {% endif %}
+            <br>
+          {% empty %}
+            keine
+          {% endfor %}
+        </li>
+      </ul>
+      <!-- Кнопки редактирования/удаления добавишь потом -->
+    </li>
+  {% empty %}
+    <li>Keine Anmeldungen vorhanden.</li>
   {% endfor %}
+</ul>
 
-  <!-- Datenschutzerklärung Feld -->
-  <div class="mb-3">
-    <label>
-      {{ form.privacy_accepted }} 
-      Ich habe die <a href="{% url 'privacy_policy' %}" target="_blank">Datenschutzerklärung</a> gelesen und akzeptiere sie.
-    </label>
-    {% for error in form.privacy_accepted.errors %}
-      <div class="text-danger">{{ error }}</div>
-    {% endfor %}
-  </div>
-
-  <button type="submit" class="btn btn-primary">Registrieren</button>
-</form>
-
-<p><a href="{% url 'participant_login' %}">Zurück zum Login</a></p>
+<a href="{% url 'registration_start' %}" class="btn btn-success">Neue Anmeldung erstellen</a>
