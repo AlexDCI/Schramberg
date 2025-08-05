@@ -17,6 +17,10 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 # Копируем проект полностью (включая db.sqlite3)
 COPY . .
 
+
+# Собираем статику (очень важно!)
+RUN python manage.py collectstatic --noinput
+
 # Открываем порт и запускаем
 EXPOSE 8000
 CMD ["gunicorn", "schramberg.wsgi:application", "--bind", "0.0.0.0:8000"]
