@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+
+
 <h2>Erwachsenen hinzufügen</h2>
 {% if form.errors %}
   <div class="alert alert-danger">
@@ -109,3 +113,6 @@
   <button type="submit" class="btn btn-primary">Speichern</button>
   <a href="{% url 'registration_start' %}" class="btn btn-link">Zurück</a>
 </form>
+
+
+{% endblock %}

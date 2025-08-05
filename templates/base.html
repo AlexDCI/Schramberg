@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}My Site{% endblock %}</title>
     <style>
         nav a {
             margin-right: 15px;
+        }
+        .user-info {
+            margin-right: 15px;
+            color: #444;
         }
     </style>
 </head>
@@ -15,16 +19,31 @@
         <a href="{% url 'about' %}">About</a>
         <a href="{% url 'conference' %}">Conference</a>
         {% if request.session.participant_id %}
-      <form action="{% url 'participant_logout' %}" method="post" style="display: inline;">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger" style="background: none; border: none; color: blue; cursor: pointer;">Logout</button>
-       </form>
-      {% else %}
-      <a href="{% url 'participant_login' %}">Login</a>
-      {% endif %}
+            {% if current_participant %}
+                <span class="user-info">
+                    Sie sind eingeloggt als: <b>{{ current_participant.full_name }}</b>
+                </span>
+            {% endif %}
+            <form action="{% url 'participant_logout' %}" method="post" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger" style="background: none; border: none; color: blue; cursor: pointer;">Logout</button>
+            </form>
+        {% else %}
+            <a href="{% url 'participant_login' %}">Login</a>
+        {% endif %}
     </nav>
 
     <hr>
+
+    {% if messages %}
+      <div>
+        {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
 
     <div>
         {% block content %}

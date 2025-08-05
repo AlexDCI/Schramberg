@@ -1,4 +1,7 @@
 <!-- templates/users/registration_confirm_delete.html -->
+{% extends "base.html" %}
+{% block content %}
+
 <h2>Anmeldung löschen</h2>
 <p>
   Bist du sicher, dass du die Anmeldung <strong>#{{ reg.id }}</strong> löschen möchtest?
@@ -11,3 +14,6 @@
   <button type="submit" class="btn btn-danger">Ja, löschen!</button>
   <a href="{% url 'participant_profile' %}" class="btn btn-secondary">Abbrechen</a>
 </form>
+
+
+{% endblock %}

@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+
 <h2>Neue Anmeldung erstellen</h2>
 
 <h4>Bisher hinzugefügte Erwachsene:</h4>
@@ -65,3 +68,6 @@
   <button type="submit" class="btn btn-success">Anmeldung abschließen</button>
   <a href="{% url 'participant_profile' %}" class="btn btn-link">Zurück</a>
 </form>
+
+
+{% endblock %}

@@ -4,6 +4,8 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.http import Http404
 from django.contrib.auth.hashers import check_password, make_password
+from django.contrib import messages
+
 
 from .models import Participant, Registration, Adult, Child
 from .forms import (
@@ -26,6 +28,7 @@ def registration_edit(request, reg_id):
         form = RegistrationForm(request.POST, instance=reg)
         if form.is_valid():
             form.save()
+            messages.success(request, "Änderungen gespeichert!")
             # Можно делать редирект на профиль или обратно к списку регистраций
             return redirect('participant_profile')
     else:
@@ -47,6 +50,7 @@ def registration_delete(request, reg_id):
     # Проверка владельца, если надо!
     if request.method == "POST":
         reg.delete()
+        messages.success(request, "Anmeldung wurde gelöscht!")
         return redirect('participant_profile')
     # Если через GET, можно просто подтвердить удаление
     return render(request, 'users/registration_confirm_delete.html', {'reg': reg})
@@ -154,6 +158,8 @@ def registration_add_adult(request):
             adult.registration = reg
             adult.save()
             return redirect('registration_start')
+        else:
+            messages.error(request, "Bitte korrigieren Sie die Fehler im Formular.")
     else:
         form = AdultForm()
     return render(request, 'users/registration_add_adult.html', {'form': form})

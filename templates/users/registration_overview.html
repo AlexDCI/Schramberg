@@ -1,3 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+
+
 <h2>Anmeldung abschließen</h2>
 
 <h4>Erwachsene:</h4>
@@ -44,3 +48,6 @@
   <button type="submit" class="btn btn-success">Anmeldung abschließen</button>
 </form>
 <a href="{% url 'registration_start' %}" class="btn btn-link">Zurück</a>
+
+
+{% endblock %}

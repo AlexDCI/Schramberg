@@ -1,3 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+
 <h2>Willkommen {{ participant.full_name }}</h2>
 
 <h3>Ihre Anmeldungen:</h3>
@@ -46,7 +49,6 @@
           {% endfor %}
         </li>
       </ul>
-      <a href="{% url 'registration_edit' reg.id %}" class="btn btn-outline-primary btn-sm">Anmeldung bearbeiten</a>
       <a href="{% url 'registration_delete' reg.id %}" class="btn btn-outline-danger btn-sm"
          onclick="return confirm('Anmeldung wirklich löschen?');">Anmeldung löschen</a>
     </li>
@@ -57,3 +59,6 @@
 
 <a href="{% url 'registration_start' %}" class="btn btn-success">Neue Anmeldung erstellen</a>
 <a href="{% url 'home' %}" class="btn btn-outline-info">Zur Hauptseite</a>
+
+
+{% endblock %}

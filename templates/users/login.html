@@ -1,3 +1,7 @@
+
+{% extends "base.html" %}
+{% block content %}
+
 <h2>Registrierung / Anmeldung des Teilnehmers</h2>
 
 <form method="post" novalidate>
@@ -27,3 +31,6 @@
 <p>
   <a href="{% url 'participant_password_reset_request' %}">Passwort vergessen?</a>
 </p>
+
+
+{% endblock %}
